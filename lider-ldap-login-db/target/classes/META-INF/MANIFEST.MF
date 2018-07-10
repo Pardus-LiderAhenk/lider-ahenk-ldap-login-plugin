@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1531228472683
+Build-Jdk: 1.8.0_171
+Built-By: root
+Bundle-License: http://www.gnu.org/licenses/lgpl.html
+Bundle-ManifestVersion: 2
+Bundle-Name: lider-ldap-login-db
+Bundle-SymbolicName: lider-ldap-login-db
+Bundle-Version: 1.0.0
+Created-By: Apache Maven Bundle Plugin
+Export-Package: tr.org.liderahenk.ldaplogin.entities;uses:="javax.persis
+ tence";version="1.0.0"
+Fragment-Host: lider-persistence-mariadb;bundle-version="[1.0.0,2)"
+Import-Package: javax.persistence;version="[1.1,2)"
+Include-Resource: OSGI-INF/blueprint.xml=src/main/resources/OSGI-INF/blu
+ eprint.xml
+Private-Package: tr.org.liderahenk.ldaplogin.entities
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.6))"
+Tool: Bnd-3.0.0.201509101326
