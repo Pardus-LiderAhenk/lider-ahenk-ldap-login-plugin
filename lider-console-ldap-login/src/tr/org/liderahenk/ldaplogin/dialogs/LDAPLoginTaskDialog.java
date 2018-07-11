@@ -146,7 +146,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 
 	@Override
 	public String getPluginName() {
-		return "ldap-login";
+		return LDAPLoginConstants.PLUGIN_NAME;
 	}
 
 	@Override
