@@ -1,12 +1,13 @@
 #!/bin/bash
 
+#Author: <tuncay.colak@tubitak.gov.tr>
+#set debconf libnss-ldap and libpam-ldap
 
 ldap_hostname=$1
 ldap_base_dn=$2
 ldap_user_dn=$3
 ldap_user_pwd=$4
 ldap_version=$5
-
 
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 

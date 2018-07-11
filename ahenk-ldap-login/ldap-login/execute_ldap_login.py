@@ -5,7 +5,7 @@
 from base.plugin.abstract_plugin import AbstractPlugin
 import re
 
-class Login(AbstractPlugin):
+class LdapLogin(AbstractPlugin):
     def __init__(self, data, context):
         super(AbstractPlugin, self).__init__()
         self.data = data
@@ -30,8 +30,8 @@ class Login(AbstractPlugin):
             self.change_configs()
 
             self.context.create_response(code=self.message_code.TASK_PROCESSED.value,
-                                         message= 'LDAP Login başarı ile sağlandı',
-                                         content_type= self.get_content_type().APPLICATION_JSON.value)
+                                         message='LDAP Login başarı ile sağlandı',
+                                         content_type=self.get_content_type().APPLICATION_JSON.value)
         except Exception as e:
             self.logger.error(str(e))
             self.context.create_response(code=self.message_code.TASK_ERROR.value,
@@ -134,7 +134,7 @@ class Login(AbstractPlugin):
         self.logger.info("Operation finished")
 
 def handle_task(task, context):
-    plugin = Login(task, context)
+    plugin = LdapLogin(task, context)
     plugin.handle_task()
     
 
