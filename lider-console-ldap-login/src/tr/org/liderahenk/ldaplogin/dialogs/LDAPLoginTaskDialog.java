@@ -52,7 +52,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 	@Override
 	public String createTitle() {
 		// TODO dialog title
-		return "LDAP Login";
+		return "LDAP Oturum Açma";
 	}
 
 	@Override
