@@ -160,6 +160,6 @@
   		point="tr.org.liderahenk.liderconsole.core.taskmenu">
   		<taskItem label="%command.task" pluginName="ldap-login" pluginVersion="1.0.0" taskCommandId="tr.org.liderahenk.liderconsole.commands.LDAPLoginTask" 
   		selectionType="multi" description="Kullanıcıların OpenLDAP'ta login olmasını sağlar." 
-  		imagePath="ldap-login.png"/>
+  		imagePath="users-more.png"/>
   		</extension>
 </plugin>
