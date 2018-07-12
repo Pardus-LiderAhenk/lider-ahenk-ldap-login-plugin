@@ -3,7 +3,6 @@ package tr.org.liderahenk.ldaplogin.dialogs;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -17,10 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.ldaplogin.constants.LDAPLoginConstants;
+import tr.org.liderahenk.liderconsole.core.current.UserSettings;
 import tr.org.liderahenk.liderconsole.core.dialogs.DefaultTaskDialog;
 import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
+import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
-import tr.org.liderahenk.liderconsole.core.model.LdapInfo;
 
 /**
  * Task execution dialog for ldap-login plugin.
@@ -73,7 +73,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 
 		textLDAPServerIP=new Text(composite, SWT.BORDER);
 		textLDAPServerIP.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		textLDAPServerIP.setText(LdapInfo.serverAddress);
+		textLDAPServerIP.setText(LdapConnectionListener.getConnection().getHost());
 		textLDAPServerIP.setEnabled(false);
 		
 		//LDAP DN
@@ -83,7 +83,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 
 		textLDAPDN=new Text(composite, SWT.BORDER);
 		textLDAPDN.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		textLDAPDN.setText(LdapInfo.DN);
+		textLDAPDN.setText(LdapConnectionListener.getConnection().getConnectionParameter().getExtendedProperty("ldapbrowser.baseDn"));
 		textLDAPDN.setEnabled(false);
 		
 		//LDAP Admin DN
@@ -93,7 +93,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 
 		textLDAPAdminDN=new Text(composite, SWT.BORDER);
 		textLDAPAdminDN.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		textLDAPAdminDN.setText(LdapInfo.adminDN);
+		textLDAPAdminDN.setText(UserSettings.USER_DN);
 		textLDAPAdminDN.setEnabled(false);
 		
 		//LDAP Admin Password
@@ -101,10 +101,9 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 		lblLDAPAdminPassword.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
 		lblLDAPAdminPassword.setText("LDAP Admin Password"); //$NON-NLS-1$
 
-		//textLDAPAdminPassword=new Text(composite, SWT.BORDER);
 		textLDAPAdminPassword=new Text(composite, SWT.BORDER| SWT.PASSWORD);
 		textLDAPAdminPassword.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		textLDAPAdminPassword.setText(LdapInfo.adminPassword);
+		textLDAPAdminPassword.setText(UserSettings.USER_PASSWORD);
 		textLDAPAdminPassword.setEnabled(false);
 		
 		//LDAP Version
@@ -114,14 +113,14 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 
 		textLDAPVersion=new Text(composite, SWT.BORDER);
 		textLDAPVersion.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		textLDAPVersion.setText(String.valueOf(LdapInfo.version));
+		textLDAPVersion.setText("3");
 		
 		return composite;
 	}
 
 	@Override
 	public void validateBeforeExecution() throws ValidationException {
-		if(LdapUtils.getInstance().isAdmin(LdapInfo.adminDN) == false) {
+		if(LdapUtils.getInstance().isAdmin(UserSettings.USER_DN) == false) {
 			MessageDialog.openWarning(shell, "Admin Yetkisi", "Bu işlemi yapabilmek için admin yetkisine sahip olmalısınız!");
 			throw new ValidationException("Bu işlemi yapabilmek için admin yetkisine sahip olmalısınız!");
 		}
@@ -130,10 +129,10 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 	@Override
 	public Map<String, Object> getParameterMap() {
 		Map<String, Object> params= new HashMap<>();
-		params.put("server-address", LdapInfo.serverAddress);
-		params.put("dn", LdapInfo.DN);
-		params.put("admin-dn", LdapInfo.adminDN);
-		params.put("admin-password", LdapInfo.adminPassword);
+		params.put("server-address", LdapConnectionListener.getConnection().getHost());
+		params.put("dn", LdapConnectionListener.getConnection().getConnectionParameter().getExtendedProperty("ldapbrowser.baseDn"));
+		params.put("admin-dn", UserSettings.USER_DN);
+		params.put("admin-password", UserSettings.USER_PASSWORD);
 		params.put("version", textLDAPVersion.getText());
 		return params;
 	}
