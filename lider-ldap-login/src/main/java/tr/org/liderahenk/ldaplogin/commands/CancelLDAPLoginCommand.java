@@ -17,9 +17,9 @@ import tr.org.liderahenk.lider.core.api.service.ICommandResult;
 import tr.org.liderahenk.lider.core.api.service.ICommandResultFactory;
 import tr.org.liderahenk.lider.core.api.service.enums.CommandResultStatus;
 
-public class LDAPLoginCommand implements ICommand {
+public class CancelLDAPLoginCommand implements ICommand {
 
-	private Logger logger = LoggerFactory.getLogger(LDAPLoginCommand.class);
+	private Logger logger = LoggerFactory.getLogger(CancelLDAPLoginCommand.class);
 	
 	private ICommandResultFactory resultFactory;
 	private IPluginInfo pluginInfo;
@@ -60,7 +60,7 @@ public class LDAPLoginCommand implements ICommand {
 	@Override
 	public String getCommandId() {
 		// TODO Unique command ID used to match incoming REST requests to this Command class.
-		return "EXECUTE_CANCEL_LDAP_LOGIN";
+		return "EXECUTE_LDAP_LOGIN";
 	}
 
 	@Override

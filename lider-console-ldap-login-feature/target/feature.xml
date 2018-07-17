@@ -18,8 +18,8 @@
 
    <plugin
          id="lider-console-ldap-login"
-         download-size="13"
-         install-size="21"
+         download-size="15"
+         install-size="26"
          version="1.0.0"
          unpack="false"/>
 

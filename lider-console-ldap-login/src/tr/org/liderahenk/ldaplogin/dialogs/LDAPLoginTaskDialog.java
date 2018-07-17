@@ -3,10 +3,14 @@ package tr.org.liderahenk.ldaplogin.dialogs;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -40,8 +44,11 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 	private Text textLDAPVersion;
 	private Text textLDAPAdminDN;
 	private Text textLDAPAdminPassword;
+	private Button buttonCancelLDAPLogin;	
 	
 	private Shell shell;
+	
+	private Boolean isCancelLDAPLoginChecked= false;
 	
 	// TODO do not forget to change this constructor if SingleSelectionHandler is used!
 	public LDAPLoginTaskDialog(Shell parentShell, Set<String> dnSet) {
@@ -65,7 +72,15 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
         data.heightHint=500;
 		
 		composite.setLayoutData(data);
-        
+		
+		//Cancel LDAP login
+		buttonCancelLDAPLogin=new Button(composite, SWT.CHECK| SWT.BORDER);
+		buttonCancelLDAPLogin.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
+		buttonCancelLDAPLogin.setText("LDAP oturum açmayı iptal et");
+		
+		//add empty grid cell
+		new Label(composite, SWT.NONE);
+
         //LDAP Server IP
 		lblLDAPServerIP = new Label(composite, SWT.NONE);
 		lblLDAPServerIP.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
@@ -115,6 +130,44 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 		textLDAPVersion.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
 		textLDAPVersion.setText("3");
 		
+		buttonCancelLDAPLogin.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				Button buttonResultOfCheckBox = (Button) e.getSource() ;
+				if(buttonResultOfCheckBox.getSelection() == true) {
+					isCancelLDAPLoginChecked = true;
+					lblLDAPServerIP.setVisible(false);
+					textLDAPServerIP.setVisible(false);
+					lblLDAPDN.setVisible(false);
+					textLDAPDN.setVisible(false);
+					lblLDAPAdminDN.setVisible(false);
+					textLDAPAdminDN.setVisible(false);
+					lblLDAPAdminPassword.setVisible(false);
+					textLDAPAdminPassword.setVisible(false);
+					lblLDAPVersion.setVisible(false);
+					textLDAPVersion.setVisible(false);
+				}
+				else {
+					isCancelLDAPLoginChecked = false;
+					lblLDAPServerIP.setVisible(true);
+					textLDAPServerIP.setVisible(true);
+					lblLDAPDN.setVisible(true);
+					textLDAPDN.setVisible(true);
+					lblLDAPAdminDN.setVisible(true);
+					textLDAPAdminDN.setVisible(true);
+					lblLDAPAdminPassword.setVisible(true);
+					textLDAPAdminPassword.setVisible(true);
+					lblLDAPVersion.setVisible(true);
+					textLDAPVersion.setVisible(true);
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				MessageDialog.openWarning(shell, "widgetDefaultSelected", "widgetDefaultSelected");
+			}
+		});
 		return composite;
 	}
 
@@ -129,18 +182,27 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 	@Override
 	public Map<String, Object> getParameterMap() {
 		Map<String, Object> params= new HashMap<>();
-		params.put("server-address", LdapConnectionListener.getConnection().getHost());
-		params.put("dn", LdapConnectionListener.getConnection().getConnectionParameter().getExtendedProperty("ldapbrowser.baseDn"));
-		params.put("admin-dn", UserSettings.USER_DN);
-		params.put("admin-password", UserSettings.USER_PASSWORD);
-		params.put("version", textLDAPVersion.getText());
+		if(isCancelLDAPLoginChecked) {
+			params.put("set-previous-settings", isCancelLDAPLoginChecked);
+			
+		} else {
+			params.put("server-address", LdapConnectionListener.getConnection().getHost());
+			params.put("dn", LdapConnectionListener.getConnection().getConnectionParameter().getExtendedProperty("ldapbrowser.baseDn"));
+			params.put("admin-dn", UserSettings.USER_DN);
+			params.put("admin-password", UserSettings.USER_PASSWORD);
+			params.put("version", textLDAPVersion.getText());
+		}
 		return params;
 	}
 
 	@Override
 	public String getCommandId() {
 		// TODO command id which is used to match tasks with ICommand class in the corresponding Lider plugin
-		return "execute_ldap_login";
+		if(isCancelLDAPLoginChecked) {
+			return "execute_cancel_ldap_login";	
+		} else {
+			return "execute_ldap_login";
+		}
 	}
 
 	@Override
