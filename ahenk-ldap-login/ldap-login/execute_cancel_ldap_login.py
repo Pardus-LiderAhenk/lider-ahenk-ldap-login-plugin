@@ -5,6 +5,7 @@
 from base.plugin.abstract_plugin import AbstractPlugin
 import re
 
+
 class Login(AbstractPlugin):
     def __init__(self, data, context):
         super(AbstractPlugin, self).__init__()
@@ -15,23 +16,8 @@ class Login(AbstractPlugin):
 
     def handle_task(self):
         try:
-            self.execute("mkdir /etc/pam.d/ldaploginbackup")
-            self.execute("cp -R /etc/nsswitch.conf /etc/pam.d/ldaploginbackup/nsswitch.conf.ahenk")
-            self.execute("cp -R /etc/pam.d/common-password /etc/pam.d/ldaploginbackup/common-password.ahenk")
-            self.execute("cp -R /etc/pam.d/common-session /etc/pam.d/ldaploginbackup/common-session.ahenk")
-            self.execute("cp -R /etc/lightdm/lightdm.conf /etc/pam.d/ldaploginbackup/lightdm.conf.ahenk")
-
-            server_address = self.data['server-address']
-            dn = self.data['dn']
-            version = self.data['version']
-            admin_dn = self.data['admin-dn']
-            admin_password = self.data['admin-password']
-
-            (result_code, p_out, p_err) = self.execute("/bin/bash /usr/share/ahenk/plugins/ldap-login/scripts/ldap-login.sh {0} {1} {2} {3} {4}".format(server_address, dn, admin_dn, admin_password, version))
-            if result_code == 0:
-                self.logger.info("Script has run successfully")
-            else:
-                self.logger.error("Script could not run successfully: " + p_err)
+            self.execute("sudo apt purge libpam-ldap libnss-ldap ldap-utils -y")
+            self.execute("sudo apt autoremove -y")
 
             self.change_configs()
 
@@ -42,6 +28,7 @@ class Login(AbstractPlugin):
             self.logger.error(str(e))
             self.context.create_response(code=self.message_code.TASK_ERROR.value,
                                          message='Dosya oluşturulamadı hata oluştu: {0}'.format(str(e)))
+
     def change_configs(self):
 
         # pattern for clearing file data from spaces, tabs and newlines
@@ -54,20 +41,20 @@ class Login(AbstractPlugin):
         # cleared file data from spaces, tabs and newlines
         text = pattern.sub('', file_data)
 
-        is_configuration_done_before = False
-        if ("passwd:compatldap" not in text):
-            file_data = file_data.replace("passwd:         compat", "passwd:         compat ldap")
-            is_configuration_done_before = True
+        did_configuration_change = False
+        if "passwd:compatldap" in text:
+            file_data = file_data.replace("passwd:         compat ldap", "passwd:         compat")
+            did_configuration_change = True
 
-        if ("group:compatldap" not in text):
-            file_data = file_data.replace("group:          compat", "group:          compat ldap")
-            is_configuration_done_before = True
+        if "group:compatldap" in text:
+            file_data = file_data.replace("group:          compat ldap", "group:          compat")
+            did_configuration_change = True
 
-        if ("shadow:compatldap" not in text):
-            file_data = file_data.replace("shadow:         compat", "shadow:         compat ldap")
-            is_configuration_done_before = True
+        if "shadow:compatldap" in text:
+            file_data = file_data.replace("shadow:         compat ldap", "shadow:         compat")
+            did_configuration_change = True
 
-        if is_configuration_done_before:
+        if did_configuration_change:
             self.logger.info("nsswitch.conf configuration has been configured")
         else:
             self.logger.info("nsswitch.conf has already been configured")
@@ -85,14 +72,14 @@ class Login(AbstractPlugin):
         # cleared file data from spaces, tabs and newlines
         text = pattern.sub('', file_data)
 
-        original_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so use_authtok try_first_pass"
-        new_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so try_first_pass"
+        original_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so try_first_pass"
+        new_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so use_authtok try_first_pass"
 
-        if ("password[success=1user_unknown=ignoredefault=die]pam_ldap.sotry_first_pass" in text):
-            self.logger.info("common-password has already been configured")
-        else:
+        if "password[success=1user_unknown=ignoredefault=die]pam_ldap.sotry_first_pass" in text:
             file_data = file_data.replace(original_configuration, new_configuration)
             self.logger.info("common-password configuration has been configured")
+        else:
+            self.logger.info("common-password has already been configured")
 
         file_common_password.close()
         file_common_password = open("/etc/pam.d/common-password", 'w')
@@ -107,15 +94,16 @@ class Login(AbstractPlugin):
         file_data = file_common_session.read()
         text = pattern.sub('', file_data)
 
-        if("sessionrequiredpam_mkhomedir.soskel=/etc/skelumask=0022" in text):
-            self.logger.info("common-session has already been configured")
-        else:
-
-            file_common_session.close()
-            file_common_session = open("/etc/pam.d/common-session", 'a')
-            file_common_session.write("session required        pam_mkhomedir.so skel=/etc/skel umask=0022")
-            file_common_session.close()
+        if "sessionrequiredpam_mkhomedir.soskel=/etc/skelumask=0022" in text:
+            file_data = file_data.replace("session required        pam_mkhomedir.so skel=/etc/skel umask=0022", "")
             self.logger.info("common-session configuration has been configured")
+        else:
+            self.logger.info("common-session has already been configured")
+
+        file_common_password.close()
+        file_common_password = open("/etc/pam.d/common-session", 'w')
+        file_common_password.write(file_data)
+        file_common_password.close()
 
         # Configure lightdm.service
         file_lightdm = open("/etc/lightdm/lightdm.conf", 'r')
@@ -123,14 +111,14 @@ class Login(AbstractPlugin):
 
         text = pattern.sub('', file_data)
 
-        original_configuration = "#greeter-hide-users=false"
-        new_configuration = "greeter-hide-users=true"
+        original_configuration = "greeter-hide-users=true"
+        new_configuration = "#greeter-hide-users=false"
 
-        if ("greeter-hide-users=true" in text):
-            self.logger.info("lightdm.conf has already been configured.")
-        else:
+        if "greeter-hide-users=true" in text:
             file_data = file_data.replace(original_configuration, new_configuration)
             self.logger.info("lightdm.conf has been configured.")
+        else:
+            self.logger.info("lightdm.conf has already been configured.")
 
         file_lightdm.close()
         file_lightdm = open("/etc/lightdm/lightdm.conf", 'w')
@@ -139,6 +127,7 @@ class Login(AbstractPlugin):
 
         self.execute("systemctl restart nscd.service")
         self.logger.info("Operation finished")
+
 
 def handle_task(task, context):
     plugin = Login(task, context)
