@@ -106,24 +106,10 @@ class Login(AbstractPlugin):
         file_common_password.close()
 
         # Configure lightdm.service
-        file_lightdm = open("/etc/lightdm/lightdm.conf", 'r')
-        file_data = file_lightdm.read()
-
-        text = pattern.sub('', file_data)
-
-        original_configuration = "greeter-hide-users=true"
-        new_configuration = "#greeter-hide-users=false"
-
-        if "greeter-hide-users=true" in text:
-            file_data = file_data.replace(original_configuration, new_configuration)
-            self.logger.info("lightdm.conf has been configured.")
-        else:
-            self.logger.info("lightdm.conf has already been configured.")
-
-        file_lightdm.close()
-        file_lightdm = open("/etc/lightdm/lightdm.conf", 'w')
-        file_lightdm.write(file_data)
-        file_lightdm.close()
+        pardus_xfce_path = "/usr/share/lightdm/lightdm.conf.d/99-pardus-xfce.conf"
+        if self.is_exist(pardus_xfce_path):
+            self.logger.info("99-pardus-xfce.conf exists. Delete file and create new one.")
+            self.delete_file(pardus_xfce_path)
 
         self.execute("systemctl restart nscd.service")
         self.logger.info("Operation finished")

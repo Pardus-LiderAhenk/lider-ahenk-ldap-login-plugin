@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1531815084012
-Build-Jdk: 1.8.0_171
+Bnd-LastModified: 1537449504241
+Build-Jdk: 1.8.0_181
 Built-By: root
 Bundle-License: http://www.gnu.org/licenses/lgpl.html
 Bundle-ManifestVersion: 2

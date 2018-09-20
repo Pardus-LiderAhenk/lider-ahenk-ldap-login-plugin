@@ -60,7 +60,7 @@ public class LDAPLoginCommand implements ICommand {
 	@Override
 	public String getCommandId() {
 		// TODO Unique command ID used to match incoming REST requests to this Command class.
-		return "EXECUTE_CANCEL_LDAP_LOGIN";
+		return "EXECUTE_LDAP_LOGIN";
 	}
 
 	@Override

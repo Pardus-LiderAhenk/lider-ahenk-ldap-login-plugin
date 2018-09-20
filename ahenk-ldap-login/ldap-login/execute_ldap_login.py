@@ -5,7 +5,7 @@
 from base.plugin.abstract_plugin import AbstractPlugin
 import re
 
-class Login(AbstractPlugin):
+class LdapLogin(AbstractPlugin):
     def __init__(self, data, context):
         super(AbstractPlugin, self).__init__()
         self.data = data
@@ -15,12 +15,6 @@ class Login(AbstractPlugin):
 
     def handle_task(self):
         try:
-            self.execute("mkdir /etc/pam.d/ldaploginbackup")
-            self.execute("cp -R /etc/nsswitch.conf /etc/pam.d/ldaploginbackup/nsswitch.conf.ahenk")
-            self.execute("cp -R /etc/pam.d/common-password /etc/pam.d/ldaploginbackup/common-password.ahenk")
-            self.execute("cp -R /etc/pam.d/common-session /etc/pam.d/ldaploginbackup/common-session.ahenk")
-            self.execute("cp -R /etc/lightdm/lightdm.conf /etc/pam.d/ldaploginbackup/lightdm.conf.ahenk")
-
             server_address = self.data['server-address']
             dn = self.data['dn']
             version = self.data['version']
@@ -36,8 +30,8 @@ class Login(AbstractPlugin):
             self.change_configs()
 
             self.context.create_response(code=self.message_code.TASK_PROCESSED.value,
-                                         message= 'LDAP Login başarı ile sağlandı',
-                                         content_type= self.get_content_type().APPLICATION_JSON.value)
+                                         message='LDAP Login başarı ile sağlandı',
+                                         content_type=self.get_content_type().APPLICATION_JSON.value)
         except Exception as e:
             self.logger.error(str(e))
             self.context.create_response(code=self.message_code.TASK_ERROR.value,
@@ -68,9 +62,9 @@ class Login(AbstractPlugin):
             is_configuration_done_before = True
 
         if is_configuration_done_before:
-            self.logger.info("nsswitch.conf configuration has been configured")
+            self.logger.info("nsswitch.conf configuration has been completed")
         else:
-            self.logger.info("nsswitch.conf has already been configured")
+            self.logger.info("nsswitch.conf is already configured")
 
         file_ns_switch.close()
         file_ns_switch = open("/etc/nsswitch.conf", 'w')
@@ -89,10 +83,10 @@ class Login(AbstractPlugin):
         new_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so try_first_pass"
 
         if ("password[success=1user_unknown=ignoredefault=die]pam_ldap.sotry_first_pass" in text):
-            self.logger.info("common-password has already been configured")
+            self.logger.info("common-password is already configured")
         else:
             file_data = file_data.replace(original_configuration, new_configuration)
-            self.logger.info("common-password configuration has been configured")
+            self.logger.info("common-password configuration has been completed")
 
         file_common_password.close()
         file_common_password = open("/etc/pam.d/common-password", 'w')
@@ -108,40 +102,42 @@ class Login(AbstractPlugin):
         text = pattern.sub('', file_data)
 
         if("sessionrequiredpam_mkhomedir.soskel=/etc/skelumask=0022" in text):
-            self.logger.info("common-session has already been configured")
+            self.logger.info("common-session is already configured")
         else:
-
+            print("common-session configuration has been completed")
+            self.logger.info("common-session configuration has been completed")
             file_common_session.close()
             file_common_session = open("/etc/pam.d/common-session", 'a')
             file_common_session.write("session required        pam_mkhomedir.so skel=/etc/skel umask=0022")
             file_common_session.close()
-            self.logger.info("common-session configuration has been configured")
 
         # Configure lightdm.service
-        file_lightdm = open("/etc/lightdm/lightdm.conf", 'r')
-        file_data = file_lightdm.read()
+        # check if 99-pardus-xfce.conf exists if not create
+        pardus_xfce_path = "/usr/share/lightdm/lightdm.conf.d/99-pardus-xfce.conf"
+        if not self.is_exist(pardus_xfce_path):
+            self.logger.info("99-pardus-xfce.conf does not exist.")
+            self.create_file(pardus_xfce_path)
 
-        text = pattern.sub('', file_data)
-
-        original_configuration = "#greeter-hide-users=false"
-        new_configuration = "greeter-hide-users=true"
-
-        if ("greeter-hide-users=true" in text):
-            self.logger.info("lightdm.conf has already been configured.")
+            file_lightdm = open(pardus_xfce_path, 'a')
+            file_lightdm.write("[Seat:*]\n")
+            file_lightdm.write("greeter-hide-users=true")
+            file_lightdm.close()
+            self.logger.info("lightdm has been configured.")
         else:
-            file_data = file_data.replace(original_configuration, new_configuration)
+            self.logger.info("99-pardus-xfce.conf exists. Delete file and create new one.")
+            self.delete_file(pardus_xfce_path)
+            self.create_file(pardus_xfce_path)
+
+            file_lightdm = open(pardus_xfce_path, 'a')
+            file_lightdm.write("[Seat:*]")
+            file_lightdm.write("greeter-hide-users=true")
+            file_lightdm.close()
             self.logger.info("lightdm.conf has been configured.")
-
-        file_lightdm.close()
-        file_lightdm = open("/etc/lightdm/lightdm.conf", 'w')
-        file_lightdm.write(file_data)
-        file_lightdm.close()
-
         self.execute("systemctl restart nscd.service")
         self.logger.info("Operation finished")
 
 def handle_task(task, context):
-    plugin = Login(task, context)
+    plugin = LdapLogin(task, context)
     plugin.handle_task()
     
 
