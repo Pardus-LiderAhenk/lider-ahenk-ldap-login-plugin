@@ -6,7 +6,7 @@ from base.plugin.abstract_plugin import AbstractPlugin
 import re
 
 
-class Login(AbstractPlugin):
+class CancelLDAPLogin(AbstractPlugin):
     def __init__(self, data, context):
         super(AbstractPlugin, self).__init__()
         self.data = data
@@ -33,6 +33,30 @@ class Login(AbstractPlugin):
 
         # pattern for clearing file data from spaces, tabs and newlines
         pattern = re.compile(r'\s+')
+
+        ldap_back_up_file_path = "/usr/share/ahenk/pam_scripts_original/ldap"
+        ldap_original_file_path = "/usr/share/pam-configs/ldap"
+
+        pam_script_back_up_file_path = "/usr/share/ahenk/pam_scripts_original/pam_script"
+        pam_script_original_file_path = "/usr/share/pam-configs/pam_script"
+
+        if self.is_exist(ldap_back_up_file_path):
+            self.logger.info("Replacing {0} with {1}".format(ldap_original_file_path, ldap_back_up_file_path))
+            self.copy_file(ldap_back_up_file_path, ldap_original_file_path)
+            self.logger.info("Deleting {0}".format(ldap_back_up_file_path))
+            self.delete_file(ldap_back_up_file_path)
+
+        if self.is_exist(pam_script_back_up_file_path):
+            self.logger.info("Replacing {0} with {1}".format(pam_script_original_file_path, pam_script_back_up_file_path))
+            self.copy_file(pam_script_back_up_file_path, pam_script_original_file_path)
+            self.logger.info("Deleting {0}".format(pam_script_back_up_file_path))
+            self.delete_file(pam_script_back_up_file_path)
+
+        (result_code, p_out, p_err) = self.execute("DEBIAN_FRONTEND=noninteractive pam-auth-update --package")
+        if result_code == 0:
+            self.logger.info("'DEBIAN_FRONTEND=noninteractive pam-auth-update --package' has run successfully")
+        else:
+            self.logger.error("'DEBIAN_FRONTEND=noninteractive pam-auth-update --package' could not run successfully: " + p_err)
 
         # Configure nsswitch.conf
         file_ns_switch = open("/etc/nsswitch.conf", 'r')
@@ -64,51 +88,10 @@ class Login(AbstractPlugin):
         file_ns_switch.write(file_data)
         file_ns_switch.close()
 
-        # Configure common-password
-
-        file_common_password = open("/etc/pam.d/common-password", 'r')
-        file_data = file_common_password.read()
-
-        # cleared file data from spaces, tabs and newlines
-        text = pattern.sub('', file_data)
-
-        original_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so try_first_pass"
-        new_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so use_authtok try_first_pass"
-
-        if "password[success=1user_unknown=ignoredefault=die]pam_ldap.sotry_first_pass" in text:
-            file_data = file_data.replace(original_configuration, new_configuration)
-            self.logger.info("common-password configuration has been configured")
-        else:
-            self.logger.info("common-password has already been configured")
-
-        file_common_password.close()
-        file_common_password = open("/etc/pam.d/common-password", 'w')
-        file_common_password.write(file_data)
-        file_common_password.close()
-
-
-        #Configure common-session
-
-        file_common_session = open("/etc/pam.d/common-session", 'r')
-
-        file_data = file_common_session.read()
-        text = pattern.sub('', file_data)
-
-        if "sessionrequiredpam_mkhomedir.soskel=/etc/skelumask=0022" in text:
-            file_data = file_data.replace("session required        pam_mkhomedir.so skel=/etc/skel umask=0022", "")
-            self.logger.info("common-session configuration has been configured")
-        else:
-            self.logger.info("common-session has already been configured")
-
-        file_common_password.close()
-        file_common_password = open("/etc/pam.d/common-session", 'w')
-        file_common_password.write(file_data)
-        file_common_password.close()
-
         # Configure lightdm.service
         pardus_xfce_path = "/usr/share/lightdm/lightdm.conf.d/99-pardus-xfce.conf"
         if self.is_exist(pardus_xfce_path):
-            self.logger.info("99-pardus-xfce.conf exists. Delete file and create new one.")
+            self.logger.info("99-pardus-xfce.conf exists. Deleting file.")
             self.delete_file(pardus_xfce_path)
 
         self.execute("systemctl restart nscd.service")
@@ -116,7 +99,7 @@ class Login(AbstractPlugin):
 
 
 def handle_task(task, context):
-    plugin = Login(task, context)
+    plugin = CancelLDAPLogin(task, context)
     plugin.handle_task()
     
 

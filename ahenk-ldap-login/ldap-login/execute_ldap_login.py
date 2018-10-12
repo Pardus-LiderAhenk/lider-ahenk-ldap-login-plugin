@@ -5,7 +5,7 @@
 from base.plugin.abstract_plugin import AbstractPlugin
 import re
 
-class LdapLogin(AbstractPlugin):
+class LDAPLogin(AbstractPlugin):
     def __init__(self, data, context):
         super(AbstractPlugin, self).__init__()
         self.data = data
@@ -41,6 +41,46 @@ class LdapLogin(AbstractPlugin):
         # pattern for clearing file data from spaces, tabs and newlines
         pattern = re.compile(r'\s+')
 
+        pam_scripts_original_directory_path = "/usr/share/ahenk/pam_scripts_original"
+
+        ldap_back_up_file_path = "/usr/share/ahenk/pam_scripts_original/ldap"
+        ldap_original_file_path = "/usr/share/pam-configs/ldap"
+        ldap_configured_file_path = "/usr/share/ahenk/plugins/ldap-login/config-files/ldap"
+
+        pam_script_back_up_file_path = "/usr/share/ahenk/pam_scripts_original/pam_script"
+        pam_script_original_file_path = "/usr/share/pam-configs/pam_script"
+        pam_script_configured_file_path = "/usr/share/ahenk/plugins/ldap-login/config-files/pam_script"
+
+        #create pam_scripts_original directory if not exists
+        if not self.is_exist(pam_scripts_original_directory_path):
+            self.logger.info("Creating {0} directory.".format(pam_scripts_original_directory_path))
+            self.create_directory(pam_scripts_original_directory_path)
+
+        if self.is_exist(ldap_back_up_file_path):
+            self.logger.info("Changing {0} with {1}.".format(ldap_original_file_path, ldap_configured_file_path))
+            self.copy_file(ldap_configured_file_path, ldap_original_file_path)
+        else:
+            self.logger.info("Backing up {0}".format(ldap_original_file_path))
+            self.copy_file(ldap_original_file_path, ldap_back_up_file_path)
+            self.logger.info("{0} file is replaced with {1}.".format(ldap_original_file_path, ldap_configured_file_path))
+            self.copy_file(ldap_configured_file_path, ldap_original_file_path)
+
+        if self.is_exist(pam_script_back_up_file_path):
+            self.copy_file(pam_script_configured_file_path, pam_script_original_file_path)
+            self.logger.info("{0} is replaced with {1}.".format(pam_script_original_file_path, pam_script_configured_file_path))
+        else:
+            self.logger.info("Backing up {0}".format(pam_script_original_file_path))
+            self.copy_file(pam_script_original_file_path, pam_script_back_up_file_path)
+            self.logger.info("{0} file is replaced with {1}".format(pam_script_original_file_path, pam_script_configured_file_path))
+            self.copy_file(pam_script_configured_file_path, pam_script_original_file_path)
+
+        (result_code, p_out, p_err) = self.execute("DEBIAN_FRONTEND=noninteractive pam-auth-update --package")
+        if result_code == 0:
+            self.logger.info("'DEBIAN_FRONTEND=noninteractive pam-auth-update --package' has run successfully")
+        else:
+            self.logger.error("'DEBIAN_FRONTEND=noninteractive pam-auth-update --package' could not run successfully: " + p_err)
+
+
         # Configure nsswitch.conf
         file_ns_switch = open("/etc/nsswitch.conf", 'r')
         file_data = file_ns_switch.read()
@@ -71,46 +111,6 @@ class LdapLogin(AbstractPlugin):
         file_ns_switch.write(file_data)
         file_ns_switch.close()
 
-        # Configure common-password
-
-        file_common_password = open("/etc/pam.d/common-password", 'r')
-        file_data = file_common_password.read()
-
-        # cleared file data from spaces, tabs and newlines
-        text = pattern.sub('', file_data)
-
-        original_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so use_authtok try_first_pass"
-        new_configuration = "password	[success=1 user_unknown=ignore default=die]	pam_ldap.so try_first_pass"
-
-        if ("password[success=1user_unknown=ignoredefault=die]pam_ldap.sotry_first_pass" in text):
-            self.logger.info("common-password is already configured")
-        else:
-            file_data = file_data.replace(original_configuration, new_configuration)
-            self.logger.info("common-password configuration has been completed")
-
-        file_common_password.close()
-        file_common_password = open("/etc/pam.d/common-password", 'w')
-        file_common_password.write(file_data)
-        file_common_password.close()
-
-
-        #Configure common-session
-
-        file_common_session = open("/etc/pam.d/common-session", 'r')
-
-        file_data = file_common_session.read()
-        text = pattern.sub('', file_data)
-
-        if("sessionrequiredpam_mkhomedir.soskel=/etc/skelumask=0022" in text):
-            self.logger.info("common-session is already configured")
-        else:
-            print("common-session configuration has been completed")
-            self.logger.info("common-session configuration has been completed")
-            file_common_session.close()
-            file_common_session = open("/etc/pam.d/common-session", 'a')
-            file_common_session.write("session required        pam_mkhomedir.so skel=/etc/skel umask=0022")
-            file_common_session.close()
-
         # Configure lightdm.service
         # check if 99-pardus-xfce.conf exists if not create
         pardus_xfce_path = "/usr/share/lightdm/lightdm.conf.d/99-pardus-xfce.conf"
@@ -137,7 +137,7 @@ class LdapLogin(AbstractPlugin):
         self.logger.info("Operation finished")
 
 def handle_task(task, context):
-    plugin = LdapLogin(task, context)
+    plugin = LDAPLogin(task, context)
     plugin.handle_task()
     
 

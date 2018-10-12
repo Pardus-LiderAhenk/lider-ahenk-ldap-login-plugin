@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.ldaplogin.constants.LDAPLoginConstants;
+import tr.org.liderahenk.ldaplogin.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.current.UserSettings;
 import tr.org.liderahenk.liderconsole.core.dialogs.DefaultTaskDialog;
 import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
@@ -28,7 +29,9 @@ import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 
 /**
  * Task execution dialog for ldap-login plugin.
- * 
+ *
+ * @author <a href="mailto:hasan.kara@pardus.org.tr">Hasan Kara</a>
+ *
  */
 public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 	
@@ -59,7 +62,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 	@Override
 	public String createTitle() {
 		// TODO dialog title
-		return "LDAP Oturum Açma";
+		return Messages.getString("LDAP_LOGIN");
 	}
 
 	@Override
@@ -68,7 +71,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 		composite.setLayout(new GridLayout(2, false));
 
 		GridData data= new GridData(SWT.FILL, SWT.FILL, true, true,1,1);
-        data.widthHint=600;
+        data.widthHint=650;
         data.heightHint=500;
 		
 		composite.setLayoutData(data);
@@ -76,7 +79,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 		//Cancel LDAP login
 		buttonCancelLDAPLogin=new Button(composite, SWT.CHECK| SWT.BORDER);
 		buttonCancelLDAPLogin.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
-		buttonCancelLDAPLogin.setText("LDAP oturum açmayı iptal et");
+		buttonCancelLDAPLogin.setText(Messages.getString("CANCEL_LDAP_LOGIN"));
 		
 		//add empty grid cell
 		new Label(composite, SWT.NONE);
@@ -84,7 +87,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
         //LDAP Server IP
 		lblLDAPServerIP = new Label(composite, SWT.NONE);
 		lblLDAPServerIP.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblLDAPServerIP.setText("LDAP Sunucu Adresi "); //$NON-NLS-1$
+		lblLDAPServerIP.setText(Messages.getString("LDAP_SERVER_ADDRESS")); //$NON-NLS-1$
 
 		textLDAPServerIP=new Text(composite, SWT.BORDER);
 		textLDAPServerIP.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
@@ -94,7 +97,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 		//LDAP DN
 		lblLDAPDN = new Label(composite, SWT.NONE);
 		lblLDAPDN.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblLDAPDN.setText("LDAP DN"); //$NON-NLS-1$
+		lblLDAPDN.setText(Messages.getString("LDAP_DN")); //$NON-NLS-1$
 
 		textLDAPDN=new Text(composite, SWT.BORDER);
 		textLDAPDN.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
@@ -104,7 +107,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 		//LDAP Admin DN
 		lblLDAPAdminDN = new Label(composite, SWT.NONE);
 		lblLDAPAdminDN.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblLDAPAdminDN.setText("LDAP Admin DN"); //$NON-NLS-1$
+		lblLDAPAdminDN.setText(Messages.getString("LDAP_ADMIN_DN")); //$NON-NLS-1$
 
 		textLDAPAdminDN=new Text(composite, SWT.BORDER);
 		textLDAPAdminDN.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
@@ -114,7 +117,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 		//LDAP Admin Password
 		lblLDAPAdminPassword = new Label(composite, SWT.NONE);
 		lblLDAPAdminPassword.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblLDAPAdminPassword.setText("LDAP Admin Password"); //$NON-NLS-1$
+		lblLDAPAdminPassword.setText(Messages.getString("LDAP_ADMIN_PASSWORD")); //$NON-NLS-1$
 
 		textLDAPAdminPassword=new Text(composite, SWT.BORDER| SWT.PASSWORD);
 		textLDAPAdminPassword.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
@@ -124,7 +127,7 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 		//LDAP Version
 		lblLDAPVersion = new Label(composite, SWT.NONE);
 		lblLDAPVersion.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1));
-		lblLDAPVersion.setText("LDAP Version"); //$NON-NLS-1$
+		lblLDAPVersion.setText(Messages.getString("LDAP_VERSION")); //$NON-NLS-1$
 
 		textLDAPVersion=new Text(composite, SWT.BORDER);
 		textLDAPVersion.setLayoutData(new GridData(SWT.FILL,SWT.CENTER,true,false,1,1));
@@ -174,8 +177,8 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 	@Override
 	public void validateBeforeExecution() throws ValidationException {
 		if(LdapUtils.getInstance().isAdmin(UserSettings.USER_DN) == false) {
-			MessageDialog.openWarning(shell, "Admin Yetkisi", "Bu işlemi yapabilmek için admin yetkisine sahip olmalısınız!");
-			throw new ValidationException("Bu işlemi yapabilmek için admin yetkisine sahip olmalısınız!");
+			MessageDialog.openWarning(shell, Messages.getString("LDAP_ADMIN_ROLE"), Messages.getString("LDAP_ADMIN_ROLE_ERROR"));
+			throw new ValidationException(Messages.getString("LDAP_ADMIN_ROLE_ERROR"));
 		}
 	}
 	

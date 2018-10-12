@@ -27,6 +27,5 @@ Require-Bundle: javax.inject;bundle-version="1.0.0",
  tr.org.liderahenk.liderconsole.core,
  org.codehaus.jackson.core,
  org.codehaus.jackson.mapper
-Bundle-Vendor: Agem Bilişim
 Bundle-Name: Lider Ahenk LDAPLogin Plugin
 Import-Package: org.apache.directory.studio.connection.core
