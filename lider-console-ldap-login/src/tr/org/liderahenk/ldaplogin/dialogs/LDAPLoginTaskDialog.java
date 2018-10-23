@@ -176,9 +176,17 @@ public class LDAPLoginTaskDialog extends DefaultTaskDialog {
 
 	@Override
 	public void validateBeforeExecution() throws ValidationException {
-		if(LdapUtils.getInstance().isAdmin(UserSettings.USER_DN) == false) {
-			MessageDialog.openWarning(shell, Messages.getString("LDAP_ADMIN_ROLE"), Messages.getString("LDAP_ADMIN_ROLE_ERROR"));
-			throw new ValidationException(Messages.getString("LDAP_ADMIN_ROLE_ERROR"));
+		if(!textLDAPVersion.getText().equals("")) {
+			try {
+				Integer.parseInt(textLDAPVersion.getText());
+			} catch (Exception e) {
+				MessageDialog.openWarning(shell, Messages.getString("LDAP_VERSION"), Messages.getString("LDAP_VERSION_NOT_INTEGER_ERROR"));
+				throw new ValidationException(Messages.getString("LDAP_VERSION_NOT_INTEGER_ERROR"));
+			}
+		}
+		else {
+			MessageDialog.openWarning(shell, Messages.getString("LDAP_VERSION"), Messages.getString("LDAP_VERSION_EMPTY_ERROR"));
+			throw new ValidationException(Messages.getString("LDAP_VERSION_EMPTY_ERROR"));
 		}
 	}
 	

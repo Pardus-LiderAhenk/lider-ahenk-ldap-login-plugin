@@ -3,8 +3,8 @@
 <artifacts size='1'>
   <artifact classifier='org.eclipse.update.feature' id='lider-console-ldap-login-feature' version='1.0.0'>
     <properties size='6'>
-      <property name='artifact.size' value='2218'/>
-      <property name='download.size' value='2218'/>
+      <property name='artifact.size' value='2220'/>
+      <property name='download.size' value='2220'/>
       <property name='maven-groupId' value='tr.org.liderahenk'/>
       <property name='maven-artifactId' value='lider-console-ldap-login-feature'/>
       <property name='maven-version' value='1.0.0'/>

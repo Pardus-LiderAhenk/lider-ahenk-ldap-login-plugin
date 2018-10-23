@@ -3,8 +3,8 @@
 <artifacts size='1'>
   <artifact classifier='osgi.bundle' id='lider-console-ldap-login' version='1.0.0'>
     <properties size='5'>
-      <property name='artifact.size' value='15580'/>
-      <property name='download.size' value='15580'/>
+      <property name='artifact.size' value='15886'/>
+      <property name='download.size' value='15886'/>
       <property name='maven-groupId' value='tr.org.liderahenk'/>
       <property name='maven-artifactId' value='lider-console-ldap-login'/>
       <property name='maven-version' value='1.0.0'/>

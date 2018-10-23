@@ -2,9 +2,8 @@
 <units size='1'>
   <unit id='lider-console-ldap-login' version='1.0.0'>
     <update id='lider-console-ldap-login' range='[0.0.0,1.0.0)' severity='0'/>
-    <properties size='5'>
+    <properties size='4'>
       <property name='org.eclipse.equinox.p2.name' value='Lider Ahenk LDAPLogin Plugin'/>
-      <property name='org.eclipse.equinox.p2.provider' value='Agem Bilişim'/>
       <property name='maven-groupId' value='tr.org.liderahenk'/>
       <property name='maven-artifactId' value='lider-console-ldap-login'/>
       <property name='maven-version' value='1.0.0'/>
