@@ -21,7 +21,7 @@ class LDAPLogin(AbstractPlugin):
             admin_dn = self.data['admin-dn']
             admin_password = self.data['admin-password']
 
-            (result_code, p_out, p_err) = self.execute("/bin/bash /usr/share/ahenk/plugins/ldap-login/scripts/ldap-login.sh {0} {1} {2} {3} {4}".format(server_address, dn, admin_dn, admin_password, version))
+            (result_code, p_out, p_err) = self.execute("/bin/bash /usr/share/ahenk/plugins/ldap-login/scripts/ldap-login.sh {0} {1} {2} {3} {4}".format(server_address, "\'" + dn + "\'", "\'" + admin_dn + "\'", "\'" + admin_password + "\'", version))
             if result_code == 0:
                 self.logger.info("Script has run successfully")
             else:
