@@ -16,9 +16,9 @@ class CancelLDAPLogin(AbstractPlugin):
 
     def handle_task(self):
         try:
-            self.execute("sudo apt purge libpam-ldap libnss-ldap ldap-utils -y")
-            self.execute("sudo apt autoremove -y")
-
+            self.execute("apt purge libpam-ldap libnss-ldap ldap-utils ldap-roles -y")
+            self.execute("apt autoremove -y")
+            self.execute("apt-get install sudo -y")
             self.change_configs()
 
             self.context.create_response(code=self.message_code.TASK_PROCESSED.value,
