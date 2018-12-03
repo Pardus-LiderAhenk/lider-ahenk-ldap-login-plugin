@@ -17,4 +17,4 @@ Password:
 Session-Type: Additional
 Session:
         optional                        pam_ldap.so
-        required        pam_mkhomedir.so skel=/etc/skel umask=0022
+        required        pam_mkhomedir.so skel=/etc/skel umask=066
