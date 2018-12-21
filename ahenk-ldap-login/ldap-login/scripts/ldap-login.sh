@@ -57,4 +57,4 @@ Variables:
 echo $ldap_user_pwd > /etc/pam_ldap.secret
 apt update
 apt-get install libpam-ldap libnss-ldap ldap-utils -y
-SUDO_FORCE_REMOVE=yes apt-get install ldap-roles -y
+SUDO_FORCE_REMOVE=yes apt-get install sudo-ldap -y
