@@ -3,12 +3,12 @@ Default: yes
 Priority: 128
 Auth-Type: Primary
 Auth-Initial:
-        [success=end default=ignore]    pam_ldap.so
+        [success=end authinfo_unavail=ignore default=ignore]    pam_ldap.so
 Auth:
-        [success=end default=ignore]    pam_ldap.so use_first_pass
+        [success=end authinfo_unavail=ignore default=ignore]    pam_ldap.so use_first_pass
 Account-Type: Primary
 Account:
-        [success=end default=ignore]    pam_ldap.so
+        [success=end new_authtok_reqd=done authinfo_unavail=1 default=ignore]    pam_ldap.so
 Password-Type: Primary
 Password-Initial:
         [success=end user_unknown=ignore default=die]   pam_ldap.so
@@ -17,4 +17,4 @@ Password:
 Session-Type: Additional
 Session:
         optional                        pam_ldap.so
-        required        pam_mkhomedir.so skel=/etc/skel umask=0022
+        required        pam_mkhomedir.so skel=/etc/skel umask=0077

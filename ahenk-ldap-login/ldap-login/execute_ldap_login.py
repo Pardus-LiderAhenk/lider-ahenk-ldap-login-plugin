@@ -111,6 +111,99 @@ class LDAPLogin(AbstractPlugin):
         file_ns_switch.write(file_data)
         file_ns_switch.close()
 
+        #configure ldap-cache
+        self.logger.info("Starting to ldap-cache configurations.")
+        result_code, p_out, p_err = self.execute("apt-get install nss-updatedb -y")
+        if result_code != 0:
+            self.logger.error("Error occured while downloading nss-updatedb.")
+        else:
+            self.logger.info("nss-updatedb downloaded successfully. Configuring /etc/nsswitch.conf.")
+            file_ns_switch = open("/etc/nsswitch.conf", 'r')
+            file_data = file_ns_switch.read()
+
+            # cleared file data from spaces, tabs and newlines
+            text = pattern.sub('', file_data)
+
+            did_configuration_change = False
+            if "passwd:compatldap[NOTFOUND=return]db" not in text:
+                file_data = file_data.replace("passwd:         compat ldap", "passwd:         compat ldap [NOTFOUND=return] db")
+                did_configuration_change = True
+
+            if "group:compatldap[NOTFOUND=return]db" not in text:
+                file_data = file_data.replace("group:          compat ldap", "group:          compat ldap [NOTFOUND=return] db")
+                did_configuration_change = True
+
+            if "gshadow:files" in text and "#gshadow:files" not in text:
+                file_data = file_data.replace("gshadow:        files", "#gshadow:        files")
+                did_configuration_change = True
+
+            if did_configuration_change:
+                self.logger.info("nsswitch.conf configuration has been configured for ldap cache.")
+            else:
+                self.logger.info("nsswitch.conf has already been configured for ldap cache.")
+
+            file_ns_switch.close()
+            file_ns_switch = open("/etc/nsswitch.conf", 'w')
+            file_ns_switch.write(file_data)
+            file_ns_switch.close()
+            self.execute("nss_updatedb ldap")
+
+        #create cron job for ldap cache
+        content = "#!/bin/bash\n" \
+                  "nss-updatedb ldap"
+        nss_update_cron_job_file_path = "/etc/cron.daily/nss-updatedb"
+        if self.is_exist(nss_update_cron_job_file_path):
+            self.logger.info("{0} exists. File will be deleted and creating new one.".format(nss_update_cron_job_file_path))
+            self.delete_file(nss_update_cron_job_file_path)
+            self.create_file(nss_update_cron_job_file_path)
+            self.write_file(nss_update_cron_job_file_path, content, 'w+')
+            self.execute("chmod +x " + nss_update_cron_job_file_path)
+        else:
+            self.logger.info(
+                "{0} doesnt exist. File will be created and content will be written.".format(nss_update_cron_job_file_path))
+            self.create_file(nss_update_cron_job_file_path)
+            self.write_file(nss_update_cron_job_file_path, content, 'w+')
+            self.execute("chmod +x " + nss_update_cron_job_file_path)
+
+        #configure /etc/libnss-ldap.conf
+        libnss_ldap_file_path = "/etc/libnss-ldap.conf"
+        content = "bind_policy hard" \
+                  "\nnss_reconnect_tries 1" \
+                  "\nnss_reconnect_sleeptime 1" \
+                  "\nnss_reconnect_maxsleeptime 8" \
+                  "\nnss_reconnect_maxconntries 2"
+        if self.is_exist(libnss_ldap_file_path):
+            self.logger.info("{0} exists.".format(libnss_ldap_file_path))
+            self.execute("sed -i '/bind_policy hard/c\\' " + libnss_ldap_file_path)
+            self.execute("sed -i '/nss_reconnect_tries 1/c\\' " + libnss_ldap_file_path)
+            self.execute("sed -i '/nss_reconnect_sleeptime 1/c\\' " + libnss_ldap_file_path)
+            self.execute("sed -i '/nss_reconnect_maxsleeptime 8/c\\' " + libnss_ldap_file_path)
+            self.execute("sed -i '/nss_reconnect_maxconntries 2/c\\' " + libnss_ldap_file_path)
+            self.write_file(libnss_ldap_file_path, content, 'a+')
+            self.logger.info("Configuration has been made to {0}.".format(libnss_ldap_file_path))
+
+        result_code, p_out, p_err = self.execute("apt-get install libnss-db libpam-ccreds -y")
+        if result_code != 0:
+            self.logger.error("Error occured while downloading libnss-db libpam-ccreds.")
+        else:
+            self.logger.error("libnss-db libpam-ccreds are downloaded.")
+
+        #configure sudo-ldap
+        sudo_ldap_conf_file_path = "/etc/sudo-ldap.conf"
+        content = "sudoers_base ou=Roles," + self.data['dn'] \
+                  + "\nBASE " + self.data['dn'] \
+                  + "\nURI ldap://" + self.data['server-address']
+        #clean if config is already written
+        self.execute("sed -i '/BASE /c\\' " + sudo_ldap_conf_file_path)
+        self.execute("sed -i '/sudoers_base /c\\' " + sudo_ldap_conf_file_path)
+        self.execute("sed -i '/URI /c\\' " + sudo_ldap_conf_file_path)
+
+        if self.is_exist(sudo_ldap_conf_file_path):
+            self.logger.info("{0} exists.".format(sudo_ldap_conf_file_path))
+            self.write_file(sudo_ldap_conf_file_path, content, 'a+')
+            self.logger.info("Content is written to {0} successfully.".format(sudo_ldap_conf_file_path))
+
+
         # Configure lightdm.service
         # check if 99-pardus-xfce.conf exists if not create
         pardus_xfce_path = "/usr/share/lightdm/lightdm.conf.d/99-pardus-xfce.conf"
@@ -134,7 +227,8 @@ class LDAPLogin(AbstractPlugin):
             file_lightdm.close()
             self.logger.info("lightdm.conf has been configured.")
         self.execute("systemctl restart nscd.service")
-        self.logger.info("Operation finished")
+        self.execute("pam-auth-update --force")
+        self.logger.info("LDAP Login operation has been completed.")
 
 def handle_task(task, context):
     plugin = LDAPLogin(task, context)
