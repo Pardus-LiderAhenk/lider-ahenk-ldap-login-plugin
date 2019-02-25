@@ -16,9 +16,9 @@ class CancelLDAPLogin(AbstractPlugin):
 
     def handle_task(self):
         try:
-            self.execute("apt purge libpam-ldap libnss-ldap ldap-utils ldap-roles -y")
-            self.execute("apt autoremove -y")
             self.execute("apt-get install sudo -y")
+            self.execute("apt purge libpam-ldap libnss-ldap ldap-utils sudo-ldap nss-updatedb libnss-db libpam-ccreds -y")
+            self.execute("apt autoremove -y")
             self.change_configs()
 
             self.context.create_response(code=self.message_code.TASK_PROCESSED.value,
@@ -66,16 +66,20 @@ class CancelLDAPLogin(AbstractPlugin):
         text = pattern.sub('', file_data)
 
         did_configuration_change = False
-        if "passwd:compatldap" in text:
-            file_data = file_data.replace("passwd:         compat ldap", "passwd:         compat")
+        if "passwd:compatldap[NOTFOUND=return]db" in text:
+            file_data = file_data.replace("passwd:         compat ldap [NOTFOUND=return] db", "passwd:         compat")
             did_configuration_change = True
 
-        if "group:compatldap" in text:
-            file_data = file_data.replace("group:          compat ldap", "group:          compat")
+        if "group:compatldap[NOTFOUND=return]db" in text:
+            file_data = file_data.replace("group:          compat ldap [NOTFOUND=return] db", "group:          compat")
             did_configuration_change = True
 
         if "shadow:compatldap" in text:
             file_data = file_data.replace("shadow:         compat ldap", "shadow:         compat")
+            did_configuration_change = True
+
+        if "#gshadow:files" in text:
+            file_data = file_data.replace("#gshadow:        files", "gshadow:        files")
             did_configuration_change = True
 
         if did_configuration_change:
@@ -87,6 +91,12 @@ class CancelLDAPLogin(AbstractPlugin):
         file_ns_switch = open("/etc/nsswitch.conf", 'w')
         file_ns_switch.write(file_data)
         file_ns_switch.close()
+
+        #Configure ldap-cache
+        nss_update_cron_job_file_path = "/etc/cron.daily/nss-updatedb"
+        if self.is_exist(nss_update_cron_job_file_path):
+            self.delete_file(nss_update_cron_job_file_path)
+            self.logger.info("{0} is deleted.".format(nss_update_cron_job_file_path))
 
         # Configure lightdm.service
         pardus_xfce_path = "/usr/share/lightdm/lightdm.conf.d/99-pardus-xfce.conf"

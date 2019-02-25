@@ -2,16 +2,16 @@ Format: 1.0
 Source: ldap-login
 Binary: ahenk-ldap-login
 Architecture: amd64
-Version: 1.0.0
+Version: 1.1
 Checksums-Md5:
- 490cde151ab452335e65276c288a2295 5266 ahenk-ldap-login_1.0.0_amd64.deb
+ 9b0ab453fbe520dab1dd2d7ee3f95b2a 5262 ahenk-ldap-login_1.1_amd64.deb
 Checksums-Sha1:
- a0c888a771a198cb4000a48cdc67b39df6b6dc02 5266 ahenk-ldap-login_1.0.0_amd64.deb
+ 019679b6d97ed8ba0435b3145e35b839d40b954e 5262 ahenk-ldap-login_1.1_amd64.deb
 Checksums-Sha256:
- df9457dce96c161682b5cf4537a29330d72ab1668303b36d6904621d3baaa970 5266 ahenk-ldap-login_1.0.0_amd64.deb
+ 812893c2dc89a37734237d5680cf757349be89c26dd5756e72ce825d523f3713 5262 ahenk-ldap-login_1.1_amd64.deb
 Build-Origin: Pardus
 Build-Architecture: amd64
-Build-Date: Wed, 02 Jan 2019 14:31:12 +0300
+Build-Date: Wed, 02 Jan 2019 14:42:39 +0300
 Installed-Build-Depends:
  autoconf (= 2.69-10),
  automake (= 1:1.15-6),
